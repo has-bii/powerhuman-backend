@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\API\CompanyController;
+use App\Http\Controllers\API\ResponsibilityController;
+use App\Http\Controllers\API\RoleController;
+use App\Http\Controllers\API\EmployeeController;
 use App\Http\Controllers\API\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -26,6 +29,37 @@ Route::prefix('company')->middleware('auth:sanctum')->name('company.')->group(fu
     Route::get('', [CompanyController::class, 'fetch'])->name('fetch');
     Route::post('', [CompanyController::class, 'create'])->name('create');
     Route::post('update/{id}', [CompanyController::class, 'update'])->name('update');
+});
+
+// Employee API
+Route::prefix('employee')->middleware('auth:sanctum')->name('employee.')->group(function () {
+    Route::get('', [EmployeeController::class, 'fetch'])->name('fetch');
+    Route::post('', [EmployeeController::class, 'create'])->name('create');
+    Route::post('update/{id}', [EmployeeController::class, 'update'])->name('update');
+    Route::delete('{id}', [EmployeeController::class, 'destroy'])->name('destroy');
+});
+
+// Employee API
+Route::prefix('employee')->middleware('auth:sanctum')->name('employee.')->group(function () {
+    Route::get('', [EmployeeController::class, 'fetch'])->name('fetch');
+    Route::post('', [EmployeeController::class, 'create'])->name('create');
+    Route::post('update/{id}', [EmployeeController::class, 'update'])->name('update');
+    Route::delete('{id}', [EmployeeController::class, 'destroy'])->name('destroy');
+});
+
+// Role API
+Route::prefix('role')->middleware('auth:sanctum')->name('role.')->group(function () {
+    Route::get('', [RoleController::class, 'fetch'])->name('fetch');
+    Route::post('', [RoleController::class, 'create'])->name('create');
+    Route::post('update/{id}', [RoleController::class, 'update'])->name('update');
+    Route::delete('{id}', [RoleController::class, 'destroy'])->name('destroy');
+});
+
+// Role API
+Route::prefix('responsibility')->middleware('auth:sanctum')->name('responsibility.')->group(function () {
+    Route::get('', [ResponsibilityController::class, 'fetch'])->name('fetch');
+    Route::post('', [ResponsibilityController::class, 'create'])->name('create');
+    Route::delete('{id}', [ResponsibilityController::class, 'destroy'])->name('destroy');
 });
 
 // Auth API
