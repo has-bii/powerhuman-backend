@@ -19,16 +19,14 @@ class TeamController extends Controller
         $name = $request->input('name');
         $limit = $request->input('limit', 10);
 
-        $teamQuery = Team::query();
+        $teamQuery = Team::withCount('employees');
 
         // powerhuman.com/api/team?id=1
         // Get single data
-        if($id)
-        {
+        if ($id) {
             $team = $teamQuery->find($id);
 
-            if ($team)
-            {
+            if ($team) {
                 return ResponseFormatter::success($team, 'Team found');
             }
 
@@ -39,8 +37,7 @@ class TeamController extends Controller
         // Get multiple data
         $teams = $teamQuery->where('company_id', $request->company_id);
 
-        if ($name)
-        {
+        if ($name) {
             $teams->where('name', 'like', '%' . $name . '%');
         }
 
@@ -54,25 +51,23 @@ class TeamController extends Controller
     {
 
         try {
-                    // Upload icon
-                    if($request->hasFile('icon')) 
-                    {
-                        $path = $request->file('icon')->store('public/icons');
-                    }
-            
-                    // Create team
-                    $team = Team::create([
-                        'name' => $request->name,
-                        'icon' => $path,
-                        'company_id' => $request->company_id
-                    ]);
-            
-                    if(!$team) {
-                        throw new Exception('Team not created');
-                    }
+            // Upload icon
+            if ($request->hasFile('icon')) {
+                $path = $request->file('icon')->store('public/icons');
+            }
 
-                    return ResponseFormatter::success($team, 'Team created');
-            
+            // Create team
+            $team = Team::create([
+                'name' => $request->name,
+                'icon' => isset($path) ? $path : '',
+                'company_id' => $request->company_id
+            ]);
+
+            if (!$team) {
+                throw new Exception('Team not created');
+            }
+
+            return ResponseFormatter::success($team, 'Team created');
         } catch (Exception $e) {
             return ResponseFormatter::error($e->getMessage(), 500);
         }
@@ -106,7 +101,7 @@ class TeamController extends Controller
             return ResponseFormatter::error($e->getMessage(), 500);
         }
     }
-    
+
     public function destroy($id)
     {
         try {
@@ -116,7 +111,7 @@ class TeamController extends Controller
             // Check if team is owned by user
 
             // Check if team exists
-            if(!$team) {
+            if (!$team) {
                 throw new Exception('Team not found');
             }
 

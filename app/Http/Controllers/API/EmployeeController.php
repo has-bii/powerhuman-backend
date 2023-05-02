@@ -22,56 +22,53 @@ class EmployeeController extends Controller
         $phone = $request->input('phone');
         $team_id = $request->input('team_id');
         $role_id = $request->input('role_id');
+        $company_id = $request->input('company_id');
         $limit = $request->input('limit', 10);
 
-        $employeeQuery = Employee::query();
+        $employeeQuery = Employee::with('team', 'role');
 
-        // powerhuman.com/api/employee?id=1
         // Get single data
-        if($id)
-        {
+        if ($id) {
             $employee = $employeeQuery->with(['team', 'role'])->find($id);
 
-            if ($employee)
-            {
+            if ($employee) {
                 return ResponseFormatter::success($employee, 'Employee found');
             }
 
             return ResponseFormatter::error('Employee not found', 404);
         }
 
-        // powerhuman.com/api/employee
         // Get multiple data
         $employees = $employeeQuery;
 
-        if ($name)
-        {
+        if ($name) {
             $employees->where('name', 'like', '%' . $name . '%');
         }
 
-        if ($email)
-        {
+        if ($email) {
             $employees->where('email', $email);
         }
 
-        if ($age)
-        {
+        if ($age) {
             $employees->where('age', $age);
         }
 
-        if ($phone)
-        {
+        if ($phone) {
             $employees->where('phone', 'like', '%' . $phone . '%');
         }
 
-        if ($role_id)
-        {
+        if ($role_id) {
             $employees->where('role_id', $role_id);
         }
 
-        if ($team_id)
-        {
+        if ($team_id) {
             $employees->where('team_id', $team_id);
+        }
+
+        if ($company_id) {
+            $employees->whereHas('team', function ($query) use ($company_id) {
+                $query->where('company_id', $company_id);
+            });
         }
 
         return ResponseFormatter::success(
@@ -80,34 +77,33 @@ class EmployeeController extends Controller
         );
     }
 
+
     public function create(CreateEmployeeRequest $request)
     {
 
         try {
-                    // Upload photo
-                    if($request->hasFile('photo')) 
-                    {
-                        $path = $request->file('photo')->store('public/photos');
-                    }
-            
-                    // Create employee
-                    $employee = Employee::create([
-                        'name' => $request->name,
-                        'email' => $request->email,
-                        'gender' => $request->gender,
-                        'age' => $request->age,
-                        'phone' => $request->phone,
-                        'photo' => $path,
-                        'team_id' => $request->team_id,
-                        'role_id' => $request->role_id
-                    ]);
-            
-                    if(!$employee) {
-                        throw new Exception('Employee not created');
-                    }
+            // Upload photo
+            if ($request->hasFile('photo')) {
+                $path = $request->file('photo')->store('public/photos');
+            }
 
-                    return ResponseFormatter::success($employee, 'Employee created');
-            
+            // Create employee
+            $employee = Employee::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'gender' => $request->gender,
+                'age' => $request->age,
+                'phone' => $request->phone,
+                'photo' => isset($path) ? $path : '',
+                'team_id' => $request->team_id,
+                'role_id' => $request->role_id
+            ]);
+
+            if (!$employee) {
+                throw new Exception('Employee not created');
+            }
+
+            return ResponseFormatter::success($employee, 'Employee created');
         } catch (Exception $e) {
             return ResponseFormatter::error($e->getMessage(), 500);
         }
@@ -132,13 +128,13 @@ class EmployeeController extends Controller
             // Update employee
             $employee->update([
                 'name' => $request->name,
-                        'email' => $request->email,
-                        'gender' => $request->gender,
-                        'age' => $request->age,
-                        'phone' => $request->phone,
-                        'photo' => isset($path) ? $path : $employee->photo,
-                        'team_id' => $request->team_id,
-                        'role_id' => $request->role_id
+                'email' => $request->email,
+                'gender' => $request->gender,
+                'age' => $request->age,
+                'phone' => $request->phone,
+                'photo' => isset($path) ? $path : $employee->photo,
+                'team_id' => $request->team_id,
+                'role_id' => $request->role_id
             ]);
 
             return ResponseFormatter::success($employee, 'employee updated');
@@ -146,7 +142,7 @@ class EmployeeController extends Controller
             return ResponseFormatter::error($e->getMessage(), 500);
         }
     }
-    
+
     public function destroy($id)
     {
         try {
@@ -156,7 +152,7 @@ class EmployeeController extends Controller
             // Check if employee is owned by user
 
             // Check if employee exists
-            if(!$employee) {
+            if (!$employee) {
                 throw new Exception('Employee not found');
             }
 
